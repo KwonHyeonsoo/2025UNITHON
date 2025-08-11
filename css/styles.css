@@ -1,0 +1,352 @@
+/* 한국어 폰트 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+:root {
+  --primary:#2f6bff;
+  --primary-dark:#204bd9;
+  --text:#15213b;
+  --muted:#8b97ad;
+  --surface:#ffffff;
+  --elev:#0b13241a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Noto Sans KR', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  margin: 0;
+  color: var(--text);
+  background: #f3f6fb;
+  min-height: 100vh;
+}
+
+/* 앱바 */
+.app-bar {
+  position: fixed; inset: 0 0 auto 0; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 12px; background: var(--surface);
+  box-shadow: 0 2px 8px var(--elev); z-index: 10;
+}
+.app-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--primary); }
+.app-brand img { width: 24px; height:24px; border-radius: 12px; }
+.icon-btn { background: transparent; border: 0; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: var(--text); }
+.icon-btn:active { background: #eef2ff; }
+
+/* 지도 */
+/* 레이아웃: 좌우 절반 (세로 분할) */
+.content { position: fixed; top: 56px; bottom: 0; left: 0; right: 0; display: grid; grid-template-columns: 1fr 1fr; }
+.map-half { position: relative; background: #e9eef7; }
+.controls-half { background: var(--surface); padding: 16px; display: grid; grid-template-rows: auto 1fr; gap: 16px; border-left: 1px solid #eef1f6; overflow: auto; }
+.gps-badge { position: absolute; left: 12px; top: 8px; background: var(--surface); color: var(--text); box-shadow: 0 4px 12px var(--elev); border-radius: 16px; padding: 8px 12px; font-size: 12px; display: flex; align-items:center; gap: 6px; z-index: 6; }
+
+/* 컨트롤: 동그라미 버튼들 */
+.controls-row { display: flex; justify-content: center; gap: 12px; }
+.circle-btn { width: 56px; height: 56px; border-radius: 28px; border: 0; background: #f3f6ff; color: var(--primary); box-shadow: 0 6px 16px var(--elev); display: grid; place-items: center; }
+.circle-btn:active { background: #e8edff; }
+
+/* 날씨 버튼 스타일 */
+.weather-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.weather-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+}
+
+.weather-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.weather-desc {
+  font-size: 8px;
+  color: var(--muted);
+  line-height: 1;
+}
+
+/* 기온 버튼 스타일 */
+.temperature-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.temperature-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.temperature {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+
+/* 인라인 기록 */
+.history-inline { border: 1px solid #eef1f6; border-radius: 12px; padding: 8px; max-height: 100%; overflow: auto; }
+.history-inline .list-group-item { padding: 8px 12px; }
+
+/* 시작 버튼 바 */
+.start-btn { width: 100%; height: 54px; border-radius: 28px; background: var(--primary); color: #fff; font-weight: 700; border: 0; box-shadow: 0 10px 24px #2f6bff55; }
+.start-btn.wide { width: 100%; }
+.start-btn:active { background: var(--primary-dark); }
+
+/* 탭바 */
+/* 탭바 제거 */
+
+/* 바텀시트 */
+.bottom-sheet { position: fixed; left: 0; right: 0; bottom: -80vh; background: var(--surface); border-radius: 16px 16px 0 0; box-shadow: 0 -12px 32px var(--elev); z-index: 20; transition: bottom .3s ease; max-height: 80vh; overflow: auto; }
+.bottom-sheet.open { bottom: 0; }
+.sheet-header { position: sticky; top: 0; display: flex; align-items: center; justify-content: center; padding: 10px 12px; border-bottom: 1px solid #eef1f6; }
+.sheet-header h5 { margin: 0; flex: 1; text-align: center; }
+.sheet-header .icon-btn { position: absolute; right: 8px; }
+.drag-handle { width: 40px; height: 4px; border-radius: 2px; background: #d8deea; margin: 6px auto 8px; }
+.sheet-body { padding: 12px; }
+
+/* 미니 카드 */
+.mini-card { background: #f6f8fe; border-radius: 12px; padding: 8px; }
+.mini-icon { color: var(--primary); }
+.mini-label { font-size: 12px; color: var(--muted); }
+.mini-value { font-weight: 800; }
+
+/* 저장 버튼 강조 */
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 #2f6bff55; }
+  70% { transform: scale(1.03); box-shadow: 0 0 0 12px #2f6bff00; }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 #2f6bff00; }
+}
+.pulse { animation: pulse 1.2s ease-out; }
+
+/* 폼 포커스 */
+.form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 0.25rem #2f6bff33; }
+.form-check-input:checked { background-color: var(--primary); border-color: var(--primary); }
+
+/* 로딩 */
+.spinner-border { width: 2.25rem; height: 2.25rem; }
+
+/* 리스트 */
+#waypoints, #tips { padding-left: 18px; }
+#waypoints li, #tips li { margin-bottom: 6px; line-height: 1.5; }
+
+/* 작은 화면에서는 상하 분할로 전환 */
+@media (max-width: 768px) {
+  .content { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+  .controls-half { border-left: 0; border-radius: 16px 16px 0 0; box-shadow: 0 -8px 24px var(--elev); }
+}
+
+/* 감정 슬라이더 스타일 */
+.emotion-slider-container {
+  background: #f8f9ff;
+  border-radius: 16px;
+  padding: 16px;
+  /* margin-bottom: 16px; */ /* 간격 일관성을 위해 grid gap으로 제어 */
+  border: 1px solid #e8edff;
+}
+
+.emotion-label {
+  display: block;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.emotion-slider-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.emotion-emoji {
+  font-size: 24px;
+  width: 40px;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.emotion-emoji.left {
+  color: #6c757d;
+}
+
+.emotion-emoji.right {
+  color: #ffc107;
+}
+
+.emotion-slider {
+  flex: 1;
+  position: relative;
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.emotion-range {
+  position: absolute;
+  width: 100%;
+  height: 6px;
+  background: transparent;
+  outline: none;
+  -webkit-appearance: none;
+  z-index: 2;
+}
+
+.emotion-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(47, 107, 255, 0.3);
+  border: 2px solid white;
+}
+
+.emotion-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(47, 107, 255, 0.3);
+}
+
+.emotion-track {
+  position: absolute;
+  width: 100%;
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.emotion-fill {
+  height: 100%;
+  background: #6c757d; /* 기본 단색 */
+  border-radius: 3px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+  width: 50%;
+}
+
+.emotion-text {
+  text-align: center;
+  font-weight: 600;
+  color: var(--text);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* 감정에 따른 단색 변화 */
+.emotion-slider-container.sad .emotion-fill {
+  background: #6c757d; /* 슬픔: 회색 */
+}
+
+.emotion-slider-container.neutral .emotion-fill {
+  background: #ffc107; /* 보통: 노란색 */
+}
+
+.emotion-slider-container.happy .emotion-fill {
+  background: #28a745; /* 기쁨: 초록색 */
+}
+
+/* 러닝 설정 컨테이너 */
+.running-settings-container {
+  background: #f8f9ff;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid #e8edff;
+  /* min-height 제거, margin-bottom 제거 */
+}
+
+.settings-title {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 16px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.running-settings-container .form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.running-settings-container .form-control,
+.running-settings-container .form-select {
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.running-settings-container .form-range {
+  height: 6px;
+}
+
+.running-settings-container .form-check {
+  margin-bottom: 6px;
+}
+
+.running-settings-container .form-check-label {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.running-settings-container .btn {
+  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.running-settings-container .small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 러닝 거리 슬라이더 색상 */
+.form-range::-webkit-slider-thumb {
+  background-color: var(--primary);
+}
+
+.form-range::-moz-range-thumb {
+  background-color: var(--primary);
+}
+
+.form-range::-ms-thumb {
+  background-color: var(--primary);
+}
+
+.form-range::-webkit-slider-runnable-track {
+  background-color: #e9ecef;
+}
+
+.form-range::-moz-range-track {
+  background-color: #e9ecef;
+}
+
+.form-range::-ms-track {
+  background-color: #e9ecef;
+}

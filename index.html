@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>러닝 코스 생성기</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- 상단 앱바 -->
+  <div class="app-bar">
+    <button class="icon-btn" id="open-settings"><i class="fa-solid fa-gear"></i></button>
+    <div class="app-brand">
+      <img src="https://dummyimage.com/24x24/2f6bff/ffffff&text=R" alt="logo" />
+      <span>Course-ON</span>
+    </div>
+    <button class="icon-btn" id="add-btn"><i class="fa-solid fa-plus"></i></button>
+  </div>
+
+  <div class="content">
+    <!-- 지도 영역 (상단 절반) -->
+    <div class="map-half">
+      <div id="map" style="width:100%;height:100%"></div>
+      <div class="gps-badge"><i class="fa-solid fa-satellite-dish"></i> GPS 양호</div>
+    </div>
+
+    <!-- 컨트롤 영역 (하단 절반) -->
+    <div class="controls-half">
+      <!-- 감정 슬라이더 추가 -->
+      <div class="emotion-slider-container">
+        <label class="emotion-label">오늘의 감정</label>
+        <div class="emotion-slider-wrapper">
+          <div class="emotion-emoji left">😢</div>
+          <div class="emotion-slider">
+            <input type="range" class="emotion-range" id="emotion-slider" min="0" max="100" value="50">
+            <div class="emotion-track">
+              <div class="emotion-fill" id="emotion-fill"></div>
+            </div>
+          </div>
+          <div class="emotion-emoji right">😊</div>
+        </div>
+        <div class="emotion-text" id="emotion-text">보통</div>
+      </div>
+      
+      <div class="controls-row">
+        <button class="circle-btn" id="history-inline-btn" aria-label="기록"><i class="fa-regular fa-clock"></i></button>
+        <button class="circle-btn" id="locate-me" aria-label="내 위치"><i class="fa-solid fa-location-crosshairs"></i></button>
+        <button class="circle-btn weather-btn" id="weather-btn" aria-label="날씨">
+          <div class="weather-content">
+            <div class="weather-icon">☀️</div>
+            <div class="weather-desc">맑음</div>
+          </div>
+        </button>
+        <button class="circle-btn temperature-btn" id="temperature-btn" aria-label="기온">
+          <div class="temperature-content">
+            <div class="temperature">23°C</div>
+          </div>
+        </button>
+      </div>
+      
+      <!-- 러닝 코스 설정 폼 추가 -->
+      <div class="running-settings-container">
+        <h6 class="settings-title">러닝 설정</h6>
+        <form id="running-form-inline">
+          <div class="mb-3">
+            <label for="location-inline" class="form-label">현재 위치</label>
+            <div class="input-group">
+              <input type="text" class="form-control form-control-sm" id="location-inline" placeholder="주소 또는 장소명">
+              <button class="btn btn-outline-secondary btn-sm" type="button" id="current-location-inline"><i class="fas fa-map-marker-alt"></i></button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="distance-inline" class="form-label">러닝 거리 (km)</label>
+            <input type="range" class="form-range" id="distance-inline" min="1" max="10" step="0.5" value="5">
+            <div class="d-flex justify-content-between">
+              <span class="small">1km</span>
+              <span id="distance-value-inline" class="small">5km</span>
+              <span class="small">10km</span>
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label for="difficulty-inline" class="form-label">난이도</label>
+              <select class="form-select form-select-sm" id="difficulty-inline">
+                <option value="walking">산책</option>
+                <option value="easy">쉬움</option>
+                <option value="medium" selected>보통</option>
+                <option value="hard">어려움</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label for="time-inline" class="form-label">시간대</label>
+              <select class="form-select form-select-sm" id="time-inline">
+                <option value="morning">아침</option>
+                <option value="afternoon" selected>오후</option>
+                <option value="evening">저녁</option>
+                <option value="night">밤</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">선호 환경</label>
+            <div class="row g-1">
+              <div class="col-6">
+                <div class="form-check form-check-sm">
+                  <input class="form-check-input" type="checkbox" value="park" id="park-preference-inline" checked>
+                  <label class="form-check-label" for="park-preference-inline">공원</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check form-check-sm">
+                  <input class="form-check-input" type="checkbox" value="river" id="river-preference-inline">
+                  <label class="form-check-label" for="river-preference-inline">강/하천</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check form-check-sm">
+                  <input class="form-check-input" type="checkbox" value="trail" id="trail-preference-inline">
+                  <label class="form-check-label" for="trail-preference-inline">트레일</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check form-check-sm">
+                  <input class="form-check-input" type="checkbox" value="urban" id="urban-preference-inline">
+                  <label class="form-check-label" for="urban-preference-inline">도심</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm w-100">코스 생성</button>
+        </form>
+      </div>
+      
+      </div>
+  </div>
+
+  <!-- 하단 탭바 제거 -->
+
+  <!-- 설정 바텀시트 -->
+  <div class="bottom-sheet" id="settings-sheet">
+    <div class="sheet-header">
+      <div class="drag-handle"></div>
+      <h5>러닝 조건 설정</h5>
+      <button class="icon-btn" id="close-settings"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="sheet-body">
+      <form id="running-form">
+        <div class="mb-3">
+          <label for="location" class="form-label">현재 위치</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="location" placeholder="주소 또는 장소명">
+            <button class="btn btn-outline-secondary" type="button" id="current-location"><i class="fas fa-map-marker-alt"></i></button>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="distance" class="form-label">러닝 거리 (km)</label>
+          <input type="range" class="form-range" id="distance" min="1" max="10" step="0.5" value="5">
+          <div class="d-flex justify-content-between">
+            <span>1km</span>
+            <span id="distance-value">5km</span>
+            <span>10km</span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="difficulty" class="form-label">난이도</label>
+          <select class="form-select" id="difficulty">
+            <option value="walking">산책</option>
+            <option value="easy">쉬움 (평지 위주)</option>
+            <option value="medium" selected>보통</option>
+            <option value="hard">어려움 (언덕 포함)</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">선호 환경</label>
+          <div class="form-check"><input class="form-check-input" type="checkbox" value="park" id="park-preference" checked><label class="form-check-label" for="park-preference">공원</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" value="river" id="river-preference"><label class="form-check-label" for="river-preference">강/하천</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" value="trail" id="trail-preference"><label class="form-check-label" for="trail-preference">트레일</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" value="urban" id="urban-preference"><label class="form-check-label" for="urban-preference">도심</label></div>
+        </div>
+        <div class="mb-3">
+          <label for="time" class="form-label">러닝 시간대</label>
+          <select class="form-select" id="time">
+            <option value="morning">아침</option>
+            <option value="afternoon" selected>오후</option>
+            <option value="evening">저녁</option>
+            <option value="night">밤</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="additional-info" class="form-label">추가 요청사항</label>
+          <textarea class="form-control" id="additional-info" rows="3" placeholder="예: 화장실이 있는 코스, 조용한 코스 등"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">설정 적용</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 코스 정보 바텀시트 -->
+  <div class="bottom-sheet" id="course-sheet">
+    <div class="sheet-header">
+      <div class="drag-handle"></div>
+      <h5>코스 정보</h5>
+      <button class="icon-btn" id="close-course"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="sheet-body">
+      <div id="loading" class="text-center py-5 d-none">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+        <p class="mt-3">최적의 러닝 코스를 생성 중입니다...</p>
+      </div>
+      <div id="initial-message" class="text-center py-4">
+        <i class="fas fa-running fa-3x text-muted mb-2"></i>
+        <h6>설정을 완료하고 시작 버튼을 눌러주세요</h6>
+      </div>
+      <div id="course-info" class="d-none">
+        <div class="row mb-3 g-2">
+          <div class="col-3"><div class="mini-card text-center"><div class="mini-icon"><i class="fas fa-route"></i></div><div class="mini-label">총 거리</div><div class="mini-value" id="total-distance">5.2km</div></div></div>
+          <div class="col-3"><div class="mini-card text-center"><div class="mini-icon"><i class="fas fa-clock"></i></div><div class="mini-label">예상 시간</div><div class="mini-value" id="estimated-time">30분</div></div></div>
+          <div class="col-3"><div class="mini-card text-center"><div class="mini-icon"><i class="fas fa-mountain"></i></div><div class="mini-label">고도 변화</div><div class="mini-value" id="elevation">+45m</div></div></div>
+          <div class="col-3"><div class="mini-card text-center"><div class="mini-icon"><i class="fas fa-star"></i></div><div class="mini-label">난이도</div><div class="mini-value" id="course-difficulty">보통</div></div></div>
+        </div>
+        <h6 class="mt-2">코스 설명</h6>
+        <p id="course-description" class="mb-3"></p>
+        <h6>주요 경유지</h6>
+        <ol id="waypoints" class="mb-3"></ol>
+        <h6>추천 팁</h6>
+        <ul id="tips" class="mb-3"></ul>
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary flex-fill" id="save-course"><i class="fas fa-save"></i> 코스 저장</button>
+          <button class="btn btn-outline-success flex-fill" id="share-course"><i class="fas fa-share-alt"></i> 공유</button>
+          <button class="btn btn-outline-secondary flex-fill" id="new-course"><i class="fas fa-sync-alt"></i> 새로 만들기</button>
+          <a class="btn btn-outline-warning flex-fill" id="kakao-map-link" href="#" target="_blank"><i class="fas fa-map-marked-alt"></i> 카카오맵에서 보기</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 기록 바텀시트 -->
+  <div class="bottom-sheet" id="history-sheet">
+    <div class="sheet-header">
+      <div class="drag-handle"></div>
+      <h5>코스 기록</h5>
+      <button class="icon-btn" id="close-history"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="sheet-body">
+      <div class="row g-2 mb-3">
+        <div class="col-4"><div class="mini-card text-center"><div class="mini-label">총 러닝</div><div class="mini-value" id="history-total-count">0</div></div></div>
+        <div class="col-4"><div class="mini-card text-center"><div class="mini-label">총 거리</div><div class="mini-value" id="history-total-distance">0 km</div></div></div>
+        <div class="col-4"><div class="mini-card text-center"><div class="mini-label">마지막 저장</div><div class="mini-value" id="history-last-date">-</div></div></div>
+      </div>
+      <h6>저장된 코스</h6>
+      <div id="history-empty" class="text-muted">저장된 코스가 없습니다.</div>
+      <ul id="history-list" class="list-group list-group-flush"></ul>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>
