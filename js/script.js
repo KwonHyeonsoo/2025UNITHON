@@ -2,7 +2,7 @@
 let map;
 let markers = [];
 let polyline = null;
-let kakaoApiKey = "11fcf4dea3e35d48d38adb2e633ab706";
+let kakaoApiKey = process.env.KAKAO_API_KEY
 // OpenAI 키는 프론트엔드에서 보관/전송하지 않습니다. 서버의 환경변수를 사용합니다.
 // OpenAI 키는 프론트엔드에서 사용하지 않으므로 별도 저장/전송 로직이 없습니다.
 
