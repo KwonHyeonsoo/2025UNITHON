@@ -1183,6 +1183,7 @@ async function showDemoCourseIfMatch() {
 }
 // 슬라이더/거리/난이도 변경 시 데모 코스 표시 시도
 ['emotion-slider','distance-inline','distance','difficulty-inline','difficulty'].forEach(id => {
-    const el = document.getElementById(id);
+        console.log("슬라이더/거리/난이도 변경 시 데모 코스 표시 시도");
+        const el = document.getElementById(id);
     if (el) el.addEventListener('input', showDemoCourseIfMatch);
 });
