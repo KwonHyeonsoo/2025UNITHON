@@ -10,7 +10,7 @@ const nextConfig = {
           { key: "Access-Control-Allow-Credentials", value: "true" },
           { 
             key: "Access-Control-Allow-Origin", 
-            value: "https://dapi.kakao.com, https://api.openai.com" 
+            value: "https://apis-navi.kakaomobility.com/v1/directions, https://api.openai.com/v1/chat/completions" 
           }, // 두 API 도메인만 허용
           { key: "Access-Control-Allow-Methods", value: "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
           { 
