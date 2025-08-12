@@ -47,12 +47,21 @@ module.exports = async function handler(req, res) {
     // 2) 카카오 경로 찾기 (가능할 때만)
     const kakaoApiKey = process.env.KAKAO_REST_API_KEY;
     try {
-      if (kakaoApiKey && courseData?.course?.waypoints?.length >= 2) {
+      if (kakaoApiKey) {
         const origin = `${courseData.course.waypoints[0].location.longitude},${courseData.course.waypoints[0].location.latitude}`;
         const last = courseData.course.waypoints[courseData.course.waypoints.length - 1];
         const destination = `${last.location.longitude},${last.location.latitude}`;
+        const waypointsArr = courseData.course.waypoints.slice(1, -1);
+        const waypointsStr = waypointsArr.length > 0
+                ? waypointsArr.map(wp => `${wp.location.longitude},${wp.location.latitude}`).join('|')
+                : undefined;
 
         const params = { origin, destination, priority: 'RECOMMEND' };
+        
+        if (waypointsStr) {
+                params.waypoints = waypointsStr;
+            }
+            
         const kakaoResponse = await axios.get('https://apis-navi.kakaomobility.com/v1/directions', {
          params,
                 headers: { 
