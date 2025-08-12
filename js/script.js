@@ -214,6 +214,23 @@ function initEventListeners() {
             }
         });
     }
+
+    // 최근 러닝 코스 패널(인라인) 리스트 액션 위임
+    const inlineHistoryListEl = document.getElementById('history-inline-list');
+    if (inlineHistoryListEl) {
+        inlineHistoryListEl.addEventListener('click', function(e){
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const action = btn.getAttribute('data-action');
+            const index = parseInt(btn.getAttribute('data-index'), 10);
+            if (Number.isNaN(index)) return;
+            if (action === 'load') {
+                loadCourseFromHistory(index);
+            } else if (action === 'delete') {
+                deleteCourseFromHistory(index);
+            }
+        });
+    }
 }
 
 // 거리 슬라이더 값 업데이트 함수
@@ -252,6 +269,11 @@ function updateEmotionValue() {
 
 // 현재 위치 가져오기 함수
 function getCurrentLocation() {
+    // GPS 버튼 클릭 시 기존 폴리라인 제거
+    if (polyline) {
+        try { polyline.setMap(null); } catch (_) {}
+        polyline = null;
+    }
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             function(position) {
@@ -347,26 +369,34 @@ async function generateRunningCourse() {
     openCourseSheet();
     // 로딩 표시
     showLoading(true);
+    updateLoadingProgress(5);
     
     try {
         // 폼 데이터 수집
         const formData = collectFormData();
+        updateLoadingProgress(10);
         
         // 주소를 좌표로 변환
+        updateLoadingProgress(15);
         const coordinates = await addressToCoordinates(formData.location);
         if (!coordinates) {
             throw new Error('주소를 좌표로 변환하는데 실패했습니다.');
         }
+        updateLoadingProgress(25);
         
         // GPT API를 통해 러닝 코스 생성 요청
+        updateLoadingProgress(35); // OpenAI 요청 시작
         const courseData = await requestRunningCourseFromGPT(formData, coordinates);
+        updateLoadingProgress(60); // OpenAI 응답 수신
         
         console.log('GPT API를 통해 러닝 코스 생성 요청', courseData);
         // 지도에 코스 표시
+        updateLoadingProgress(75); // 지도 반영 시작
         displayCourseOnMap(courseData);
                 console.log('지도에 코스 표시', courseData);
 
         // 코스 정보 표시
+        updateLoadingProgress(90);
         displayCourseInfo(courseData);
                 console.log('코스 정보 표시');
 
@@ -375,7 +405,8 @@ async function generateRunningCourse() {
         alert('러닝 코스를 생성하는데 실패했습니다. 다시 시도해주세요.');
     } finally {
         // 로딩 숨김
-        showLoading(false);
+        updateLoadingProgress(100);
+        setTimeout(()=> showLoading(false), 200);
     }
 }
 
@@ -442,6 +473,7 @@ function addressToCoordinates(address) {
 async function requestRunningCourseFromGPT(formData, coordinates) {
     try {
         // 서버 API 엔드포인트로 요청 보내기
+        updateLoadingProgress(40); // OpenAI request
         const response = await fetch('/api/generate-course', {
             method: 'POST',
             headers: {
@@ -458,7 +490,7 @@ async function requestRunningCourseFromGPT(formData, coordinates) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'API 요청 실패');
         }
-        
+        updateLoadingProgress(55); // OpenAI response
         return await response.json();
     } catch (error) {
         console.error('API 요청 중 오류 발생:', error);
@@ -471,7 +503,7 @@ async function requestRunningCourseFromGPT(formData, coordinates) {
         const start = path[0];
         const end = path[path.length - 1];
 
-        return {
+        const dummy = {
             course: {
                 description: `이 코스는 ${formData.location} 주변의 ${distanceNum}km 코스로, ${difficultyToKorean(formData.difficulty)} 난이도의 지형을 포함하고 있습니다. ` +
                     `${formData.preferences.includes('park') ? '공원을 지나며 ' : ''}` +
@@ -495,6 +527,8 @@ async function requestRunningCourseFromGPT(formData, coordinates) {
                 path: path.map(p => ({ lat: p.getLat ? p.getLat() : p.lat, lng: p.getLng ? p.getLng() : p.lng }))
             }
         };
+        updateLoadingProgress(55); // simulate OpenAI response
+        return dummy;
     }
 }
 
@@ -696,6 +730,8 @@ function showLoading(isLoading) {
     const loadingElement = document.getElementById('loading');
     const initialMessageElement = document.getElementById('initial-message');
     const courseInfoElement = document.getElementById('course-info');
+    // 진행률 초기화
+    if (isLoading) updateLoadingProgress(0);
     
     if (isLoading) {
         loadingElement.classList.remove('d-none');
@@ -704,6 +740,14 @@ function showLoading(isLoading) {
     } else {
         loadingElement.classList.add('d-none');
     }
+}
+
+// 로딩 진행 바 업데이트
+function updateLoadingProgress(percent){
+    const fill = document.getElementById('loading-progress-fill');
+    if (!fill) return;
+    const clamped = Math.max(0, Math.min(100, Number(percent) || 0));
+    fill.style.width = clamped + '%';
 }
 
 // 폼 초기화 함수
@@ -737,6 +781,17 @@ function saveCourse() {
         difficulty: document.getElementById('course-difficulty').textContent,
         description: document.getElementById('course-description').textContent,
         location: document.getElementById('location').value,
+        // 주요 경유지/추천 팁 저장
+        waypoints: (function(){
+            const list = document.getElementById('waypoints');
+            if (!list) return [];
+            return Array.from(list.querySelectorAll('li')).map(li => li.textContent.trim()).filter(Boolean);
+        })(),
+        tips: (function(){
+            const list = document.getElementById('tips');
+            if (!list) return [];
+            return Array.from(list.querySelectorAll('li')).map(li => li.textContent.trim()).filter(Boolean);
+        })(),
         // 입력값 스냅샷
         form: collectFormData(),
         // 현재 지도 경로 저장
@@ -898,6 +953,28 @@ function loadCourseFromHistory(index){
     document.getElementById('elevation').textContent = item.elevation;
     document.getElementById('course-difficulty').textContent = item.difficulty;
     document.getElementById('course-description').textContent = item.description || '';
+    // 주요 경유지 복원
+    (function(){
+        const waypointsElement = document.getElementById('waypoints');
+        if (!waypointsElement) return;
+        waypointsElement.innerHTML = '';
+        (Array.isArray(item.waypoints) ? item.waypoints : []).forEach(text => {
+            const li = document.createElement('li');
+            li.textContent = String(text);
+            waypointsElement.appendChild(li);
+        });
+    })();
+    // 추천 팁 복원
+    (function(){
+        const tipsElement = document.getElementById('tips');
+        if (!tipsElement) return;
+        tipsElement.innerHTML = '';
+        (Array.isArray(item.tips) ? item.tips : []).forEach(text => {
+            const li = document.createElement('li');
+            li.textContent = String(text);
+            tipsElement.appendChild(li);
+        });
+    })();
     document.getElementById('course-info').classList.remove('d-none');
     document.getElementById('initial-message').classList.add('d-none');
     openCourseSheet();
@@ -909,6 +986,7 @@ function deleteCourseFromHistory(index){
     localStorage.setItem('savedRunningCourses', JSON.stringify(courses));
     refreshHistorySummary();
     renderHistoryList();
+    refreshInlineHistory();
 }
 
 // 인라인 기록(컨트롤 영역) 렌더링
@@ -923,11 +1001,18 @@ function refreshInlineHistory(){
     courses.slice(-5).reverse().forEach((c,idx)=>{
         const actualIndex = courses.length - 1 - idx;
         const li = document.createElement('li');
-        li.innerHTML = `<span class="inline-history-meta">${c.location || '위치 미상'} · ${c.totalDistance} · ${c.estimatedTime}</span>
-        <span class="inline-history-actions">
-          <button class="inline-history-btn" data-action="load" data-index="${actualIndex}">불러오기</button>
-          <button class="inline-history-btn" data-action="delete" data-index="${actualIndex}">삭제</button>
-        </span>`;
+        const locationText = c.location || '위치 미상';
+        const distanceText = c.totalDistance || '';
+        const timeText = c.estimatedTime || '';
+        li.innerHTML = `
+          <div class=\"inline-history-left\">
+            <div class=\"inline-history-title\">${locationText}</div>
+            <div class=\"inline-history-sub\">${distanceText}${distanceText && timeText ? ', ' : ''}${timeText}</div>
+          </div>
+          <span class=\"inline-history-actions\">
+            <button class=\"inline-history-btn view-btn\" data-action=\"load\" data-index=\"${actualIndex}\">보기</button>
+            <button class=\"inline-history-btn delete-btn\" data-action=\"delete\" data-index=\"${actualIndex}\">삭제</button>
+          </span>`;
         listEl.appendChild(li);
     });
 }
@@ -1019,8 +1104,10 @@ async function showDemoCourseIfMatch() {
         try {
             const origin = `${start.lng},${start.lat}`;
             const destination = `${end.lng},${end.lat}`;
+            updateLoadingProgress(65); // Kakao path request
             const res = await fetch(`/api/road-path?origin=${origin}&destination=${destination}`);
             const data = await res.json();
+            updateLoadingProgress(75); // Kakao path response
             if (!data.routes || !data.routes[0] || !data.routes[0].sections) throw new Error('경로 없음');
             // vertexes 파싱
             const linePath = [];
@@ -1035,6 +1122,7 @@ async function showDemoCourseIfMatch() {
             });
             removeAllMarkers();
             if (polyline) polyline.setMap(null);
+            updateLoadingProgress(82); // Build polyline
             const poly = new window.kakao.maps.Polyline({
                 path: linePath,
                 strokeWeight: 5,
@@ -1044,6 +1132,7 @@ async function showDemoCourseIfMatch() {
             });
             poly.setMap(map);
             polyline = poly;
+            updateLoadingProgress(88); // Polyline set
             addMarker(linePath[0], start.name);
             addMarker(linePath[linePath.length-1], end.name);
             // 지도 중심/범위

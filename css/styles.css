@@ -27,7 +27,7 @@ body {
   padding: 0 12px; background: var(--surface);
   box-shadow: 0 2px 8px var(--elev); z-index: 10;
 }
-.app-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--primary); }
+.app-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: #06B6D4; }
 .app-brand img { width: 24px; height:24px; border-radius: 12px; }
 .icon-btn { background: transparent; border: 0; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: var(--text); }
 .icon-btn:active { background: #eef2ff; }
@@ -149,6 +149,7 @@ body {
 /* 미니 카드 */
 .mini-card { background: #f6f8fe; border-radius: 12px; padding: 8px; }
 .mini-icon { color: var(--primary); }
+#course-sheet .mini-icon { color: #06B6D4 !important; }
 .mini-label { font-size: 12px; color: var(--muted); }
 .mini-value { font-weight: 800; }
 
@@ -162,10 +163,21 @@ body {
 
 /* 폼 포커스 */
 .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 0.25rem #2f6bff33; }
-.form-check-input:checked { background-color: var(--primary); border-color: var(--primary); }
+.form-check-input { accent-color: #06B6D4 !important; }
+.form-check-input:checked { background-color: #06B6D4 !important; border-color: #06B6D4 !important; }
 
 /* 로딩 */
 .spinner-border { width: 2.25rem; height: 2.25rem; }
+
+/* 로딩 진행 바 */
+.loading-progress { display:flex; justify-content:center; }
+.loading-progress-track {
+  width: 100%; max-width: 420px; height: 8px; border-radius: 999px;
+  background: #e5e7eb; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
+}
+.loading-progress-fill {
+  height: 100%; width: 0%; background: #06B6D4; transition: width .3s ease;
+}
 
 /* 리스트 */
 #waypoints, #tips { padding-left: 18px; }
@@ -369,17 +381,15 @@ body {
 }
 
 /* 러닝 거리 슬라이더 색상 */
-.form-range::-webkit-slider-thumb {
-  background-color: var(--primary);
-}
+.form-range::-webkit-slider-thumb { background-color: #06B6D4 !important; }
+.form-range:focus::-webkit-slider-thumb { background-color: #06B6D4 !important; }
 
-.form-range::-moz-range-thumb {
-  background-color: var(--primary);
-}
+.form-range::-moz-range-thumb { background-color: #06B6D4 !important; }
 
-.form-range::-ms-thumb {
-  background-color: var(--primary);
-}
+.form-range::-ms-thumb { background-color: #06B6D4 !important; }
+
+/* 보조: 브라우저 공통 색상 힌트 */
+.form-range { accent-color: #06B6D4 !important; }
 
 .form-range::-webkit-slider-runnable-track {
   background-color: #e9ecef;
@@ -406,8 +416,34 @@ body {
 .route-panel-submit-btn { font-weight:700; }
 .route-panel-submit-btn:disabled { opacity:.7; cursor:not-allowed; }
 
+/* 러닝 코스 찾기 버튼 색상 변경 */
+.route-panel-submit-btn {
+  background-color: #06B6D4 !important;
+  border-color: #06B6D4 !important;
+  color: #fff !important;
+}
+.route-panel-submit-btn:hover,
+.route-panel-submit-btn:focus,
+.route-panel-submit-btn:active {
+  background-color: #06B6D4 !important;
+  border-color: #06B6D4 !important;
+}
+
+/* 코스 정보 팝업: 저장 버튼 색상 */
+#save-course.btn {
+  background-color: #06B6D4 !important;
+  border-color: #06B6D4 !important;
+  color: #fff !important;
+}
+#save-course.btn:hover,
+#save-course.btn:focus,
+#save-course.btn:active {
+  background-color: #06B6D4 !important;
+  border-color: #06B6D4 !important;
+}
+
 /* 최근 러닝 코스 리스트 */
-.inline-history-card { margin-top: 12px; }
+.inline-history-card { margin-top: 12px; padding: 16px; }
 .inline-history-body { padding: 8px 4px 8px 4px; }
 .inline-history-list { list-style: none; margin: 0; padding: 0; }
 .inline-history-list li { display:flex; align-items:center; justify-content:space-between; padding: 8px 10px; border-bottom: 1px solid #eef1f6; }
@@ -415,3 +451,34 @@ body {
 .inline-history-meta { font-size: 13px; color: var(--text); }
 .inline-history-actions { display:flex; gap: 6px; }
 .inline-history-btn { border: 1px solid #a5b4fc; color:#1d4ed8; background:#eff6ff; border-radius: 6px; padding: 4px 8px; font-size: 12px; }
+
+/* 인라인 최근 코스: 2줄 형식 */
+.inline-history-left { display:flex; flex-direction: column; gap: 2px; }
+.inline-history-title { font-size: 13px; color: var(--text); font-weight: 400; }
+.inline-history-sub { font-size: 0.7em; color: #4b5563; /* 진한 회색 */ }
+
+/* 인라인 최근 코스 버튼 스타일 */
+.inline-history-btn.view-btn {
+  background-color: #ffffff;
+  border-color: #06B6D4;
+  color: #06B6D4;
+}
+.inline-history-btn.view-btn:hover,
+.inline-history-btn.view-btn:focus,
+.inline-history-btn.view-btn:active {
+  background-color: #ffffff;
+  border-color: #06B6D4;
+  color: #06B6D4;
+}
+.inline-history-btn.delete-btn {
+  background-color: #ffffff;
+  border-color: #9ca3af; /* gray-400 */
+  color: #9ca3af; /* 텍스트를 외곽선과 동일한 회색으로 */
+}
+.inline-history-btn.delete-btn:hover,
+.inline-history-btn.delete-btn:focus,
+.inline-history-btn.delete-btn:active {
+  background-color: #ffffff;
+  border-color: #9ca3af;
+  color: #9ca3af;
+}
