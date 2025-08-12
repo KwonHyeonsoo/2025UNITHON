@@ -121,28 +121,55 @@ app.post('/api/generate-course', async (req, res) => {
         //courseData.waypoints = courseData.waypoints.map(wp => wp.name || wp);
         //res.json(courseData);
         courseData.course.waypoints = courseData.course.waypoints.map(wp => ({
-  name: wp.name || "",
-  location: {
-    latitude: wp.location?.latitude || 0,
-    longitude: wp.location?.longitude || 0,
-  }
-  
-}));
+          name: wp.name || "",
+          location: {
+            latitude: wp.location?.latitude || 0,
+            longitude: wp.location?.longitude || 0,
+          }
+        }));
 
-const formattedCourseData = {
-  course: {
-    description: courseData.course.description || "",
-    waypoints: courseData.course.waypoints,
-    running_tips: courseData.course.running_tips || [],
-    total_distance_km: courseData.course.total_distance_km || 0,
-    expected_duration_minutes: courseData.course.estimated_time_minutes || 0,
-    elevation_change_meters: courseData.course.elevation_change_m || 0,
-    emotional_recommendation: courseData.course.emotion || "",
-    path : courseData.course.path,
-  }
-};
+        // 값 정규화(필드명 변형 및 기본값 보정)
+        const src = courseData.course || {};
+        const toNumber = (v, fallback = 0) => {
+          const n = typeof v === 'number' ? v : parseFloat(String(v||'').replace(/[^0-9.+-]/g,''));
+          return isNaN(n) ? fallback : n;
+        };
 
-res.json(formattedCourseData);
+        const total_distance_km = (src.total_distance_km !== undefined)
+          ? toNumber(src.total_distance_km, toNumber(formData.distance, 0))
+          : toNumber(formData.distance, 0);
+
+        const expected_duration_minutes = (src.expected_duration_minutes !== undefined)
+          ? toNumber(src.expected_duration_minutes,
+              src.estimated_time_minutes !== undefined ? toNumber(src.estimated_time_minutes, 0) : 0)
+          : (src.estimated_time_minutes !== undefined ? toNumber(src.estimated_time_minutes, 0)
+             : (formData.difficulty === 'walking' ? Math.round(toNumber(formData.distance, 0) * 15)
+               : Math.round(toNumber(formData.distance, 0) * 6)));
+
+        const elevation_change_meters = (src.elevation_change_meters !== undefined)
+          ? toNumber(src.elevation_change_meters,
+              src.elevation_change_m !== undefined ? toNumber(src.elevation_change_m, 0) : 0)
+          : (src.elevation_change_m !== undefined ? toNumber(src.elevation_change_m, 0)
+             : Math.round(toNumber(formData.distance, 0) * 8));
+
+        const difficultyKorean = src.difficulty || difficultyToKorean(formData.difficulty);
+        const emotional_recommendation = src.emotional_recommendation || src.emotion || "";
+
+        const formattedCourseData = {
+          course: {
+            description: src.description || "",
+            waypoints: src.waypoints,
+            running_tips: Array.isArray(src.running_tips) ? src.running_tips : [],
+            total_distance_km,
+            expected_duration_minutes,
+            elevation_change_meters,
+            emotional_recommendation,
+            difficulty: difficultyKorean,
+            path: src.path,
+          }
+        };
+
+        res.json(formattedCourseData);
 
 
     } catch (error) {
@@ -323,7 +350,7 @@ waypoint의 시작과 끝 인덱스의 name은 현재 주소로 작성해주세�
 3. 러닝 팁 (시간대, 난이도, 준비물 등에 맞는 조언) - 감정 상태에 맞는 조언 포함
 4. 총 거리, 예상 소요 시간, 고도 변화
 5. 감정 상태에 따른 특별한 추천사항
-
+6. 링크 출처 빼주세요
 JSON 형식으로 응답해주세요.`;
 }
 

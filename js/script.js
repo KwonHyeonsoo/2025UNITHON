@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // 날씨 정보 초기화
     initWeather();
+    // 최근 코스 즉시 렌더 (인라인)
+    refreshInlineHistory();
 });
 
 // 과거의 API 키 입력 모달/저장 로직은 제거되었습니다.
@@ -84,19 +86,50 @@ function initEventListeners() {
         generateRunningCourse();
     });
     
-    // 인라인 설정 폼 제출
+    // 인라인 설정 폼 제출 (RoutePanel 버튼 로딩 상태 적용)
     document.getElementById('running-form-inline').addEventListener('submit', function(e) {
         e.preventDefault();
-        generateRunningCourse();
+        const submitBtn = e.target.querySelector('.route-panel-submit-btn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            const prevHtml = submitBtn.innerHTML;
+            submitBtn.dataset.prevHtml = prevHtml;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> 코스 생성 중...';
+        }
+        Promise.resolve()
+          .then(()=> generateRunningCourse())
+          .catch(()=>{})
+          .finally(()=>{
+            setTimeout(()=>{
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = submitBtn.dataset.prevHtml || '<i class="fa-solid fa-location-arrow me-1"></i> 러닝 코스 찾기';
+              }
+            }, 500);
+          });
     });
     
     // 현재 위치 버튼 클릭 이벤트
     document.getElementById('current-location').addEventListener('click', getCurrentLocation);
     document.getElementById('current-location-inline').addEventListener('click', getCurrentLocation);
     
-    // 날씨 버튼 클릭 이벤트
-    document.getElementById('weather-btn').addEventListener('click', function() {
-        // 날씨 정보 새로고침
+    // 날씨 버튼 클릭 이벤트 (버튼 삭제 대응)
+    const weatherBtn = document.getElementById('weather-btn');
+    if (weatherBtn) weatherBtn.addEventListener('click', function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                getWeatherData(lat, lon);
+            }, function(error) {
+                console.error('위치 정보를 가져올 수 없습니다:', error);
+            });
+        }
+    });
+
+    // 날씨 카드 자체 클릭 시 갱신 (버튼 삭제 대체 UX)
+    const weatherView = document.getElementById('weather-view');
+    if (weatherView) weatherView.addEventListener('click', function(){
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
                 const lat = position.coords.latitude;
@@ -108,9 +141,9 @@ function initEventListeners() {
         }
     });
     
-    // 기온 버튼 클릭 이벤트
-    document.getElementById('temperature-btn').addEventListener('click', function() {
-        // 기온 정보 새로고침
+    // 기온 버튼 클릭 이벤트 (버튼 삭제 대응)
+    const temperatureBtn = document.getElementById('temperature-btn');
+    if (temperatureBtn) temperatureBtn.addEventListener('click', function() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
                 const lat = position.coords.latitude;
@@ -126,11 +159,13 @@ function initEventListeners() {
     document.getElementById('distance').addEventListener('input', updateDistanceValue);
     document.getElementById('distance-inline').addEventListener('input', updateDistanceValueInline);
     
-    // 감정 슬라이더 변경 이벤트
-    document.getElementById('emotion-slider').addEventListener('input', updateEmotionValue);
+    // 감정 슬라이더 변경 이벤트 (RoutePanel 내 form-range 대응)
+    const emo = document.getElementById('emotion-slider');
+    if (emo) emo.addEventListener('input', updateEmotionValue);
     
-    // 기록 버튼 클릭 이벤트
-    document.getElementById('history-inline-btn').addEventListener('click', function() {
+    // 기록 버튼 클릭 이벤트 (버튼 삭제 대응)
+    const historyInlineBtn = document.getElementById('history-inline-btn');
+    if (historyInlineBtn) historyInlineBtn.addEventListener('click', function() {
         openHistorySheet();
     });
     
@@ -141,8 +176,9 @@ function initEventListeners() {
         if (e.target.closest('#share-course')) shareCourse();
     });
 
-    // 상단/패널 트리거
-    document.getElementById('open-settings').addEventListener('click', openSettings);
+    // 상단/패널 트리거 (버튼 삭제 대응)
+    const openSettingsBtn = document.getElementById('open-settings');
+    if (openSettingsBtn) openSettingsBtn.addEventListener('click', openSettings);
     document.getElementById('close-settings').addEventListener('click', closeSettings);
     // 플로팅 버튼들
     const fabActivity = document.getElementById('fab-activity');
@@ -154,7 +190,8 @@ function initEventListeners() {
     if (historyBtn) historyBtn.addEventListener('click', openHistorySheet);
     const openHistorySheetBtn = document.getElementById('open-history-sheet');
     if (openHistorySheetBtn) openHistorySheetBtn.addEventListener('click', openHistorySheet);
-    document.getElementById('close-course').addEventListener('click', closeCourseSheet);
+    const closeCourseBtn = document.getElementById('close-course');
+    if (closeCourseBtn) closeCourseBtn.addEventListener('click', closeCourseSheet);
     const closeHistory = document.getElementById('close-history');
     if (closeHistory) closeHistory.addEventListener('click', closeHistorySheet);
     // 내 위치 찾기
@@ -190,15 +227,9 @@ function updateDistanceValue() {
 function updateEmotionValue() {
     const emotionSlider = document.getElementById('emotion-slider');
     const emotionText = document.getElementById('emotion-text');
-    const emotionFill = document.getElementById('emotion-fill');
-    const emotionContainer = document.querySelector('.emotion-slider-container');
     
     const value = parseInt(emotionSlider.value);
     const percentage = value;
-    
-    // 슬라이더 채우기 업데이트
-    emotionFill.style.width = `${percentage}%`;
-    
     // 감정 텍스트와 클래스 업데이트
     let emotionLabel = '';
     let emotionClass = '';
@@ -216,9 +247,7 @@ function updateEmotionValue() {
     
     emotionText.textContent = emotionLabel;
     
-    // 컨테이너 클래스 업데이트
-    emotionContainer.classList.remove('sad', 'neutral', 'happy');
-    emotionContainer.classList.add(emotionClass);
+    // 상단 컨테이너 클래스는 미사용 상태이므로 skip
 }
 
 // 현재 위치 가져오기 함수
@@ -433,30 +462,39 @@ async function requestRunningCourseFromGPT(formData, coordinates) {
         return await response.json();
     } catch (error) {
         console.error('API 요청 중 오류 발생:', error);
-        
-        // 개발 중에는 더미 데이터 반환 (실제 배포 시 제거)
-        // 더미 데이터 (테스트용)
+        // 개발 중 더미 응답: 서버 스키마(`course`)에 맞춰 반환
+        const distanceNum = parseFloat(formData.distance);
+        const expectedMinutes = formData.difficulty === 'walking'
+            ? Math.round(distanceNum * 15)
+            : Math.round(distanceNum * 6);
+        const path = generateDummyPath(coordinates, distanceNum);
+        const start = path[0];
+        const end = path[path.length - 1];
+
         return {
-        totalDistance: formData.distance,
-        estimatedTime: Math.round(formData.distance * 6) + '분', // 1km당 약 6분 계산
-        elevation: '+' + Math.round(formData.distance * 8) + 'm',
-        difficulty: difficultyToKorean(formData.difficulty),
-        description: `이 코스는 ${formData.location} 주변의 ${formData.distance}km 코스로, ${difficultyToKorean(formData.difficulty)} 난이도의 지형을 포함하고 있습니다. ${formData.preferences.includes('park') ? '공원을 지나며 ' : ''}${formData.preferences.includes('river') ? '강변을 따라 ' : ''}${formData.preferences.includes('trail') ? '트레일을 포함하고 ' : ''}${formData.preferences.includes('urban') ? '도심 풍경을 감상할 수 있습니다.' : '자연 풍경을 감상할 수 있습니다.'}`,
-        waypoints: [
-            `출발점: ${formData.location}`,
-            `${(formData.distance * 0.3).toFixed(1)}km 지점: 첫 번째 경유지`,
-            `${(formData.distance * 0.5).toFixed(1)}km 지점: 중간 지점`,
-            `${(formData.distance * 0.8).toFixed(1)}km 지점: 마지막 경유지`,
-            `도착점: ${formData.location} (원점)`
-        ],
-        tips: [
-            timeBasedTip(formData.time),
-            `${formData.distance}km 거리이므로 약 ${Math.round(formData.distance * 0.1)}L의 물을 준비하세요.`,
-            difficultyBasedTip(formData.difficulty)
-        ],
-        // 지도에 표시할 경로 좌표
-        path: generateDummyPath(coordinates, formData.distance)
-    };
+            course: {
+                description: `이 코스는 ${formData.location} 주변의 ${distanceNum}km 코스로, ${difficultyToKorean(formData.difficulty)} 난이도의 지형을 포함하고 있습니다. ` +
+                    `${formData.preferences.includes('park') ? '공원을 지나며 ' : ''}` +
+                    `${formData.preferences.includes('river') ? '강변을 따라 ' : ''}` +
+                    `${formData.preferences.includes('trail') ? '트레일을 포함하고 ' : ''}` +
+                    `${formData.preferences.includes('urban') ? '도심 풍경을 감상할 수 있습니다.' : '자연 풍경을 감상할 수 있습니다.'}`,
+                waypoints: [
+                    { name: formData.location || '출발지', location: { latitude: start.getLat ? start.getLat() : start.lat, longitude: start.getLng ? start.getLng() : start.lng } },
+                    { name: formData.location || '도착지', location: { latitude: end.getLat ? end.getLat() : end.lat, longitude: end.getLng ? end.getLng() : end.lng } }
+                ],
+                running_tips: [
+                    timeBasedTip(formData.time),
+                    `${distanceNum}km 거리이므로 약 ${Math.round(distanceNum * 0.1)}L의 물을 준비하세요.`,
+                    difficultyBasedTip(formData.difficulty)
+                ],
+                total_distance_km: distanceNum,
+                expected_duration_minutes: expectedMinutes,
+                elevation_change_meters: Math.round(distanceNum * 8),
+                emotional_recommendation: '',
+                difficulty: difficultyToKorean(formData.difficulty),
+                path: path.map(p => ({ lat: p.getLat ? p.getLat() : p.lat, lng: p.getLng ? p.getLng() : p.lng }))
+            }
+        };
     }
 }
 
@@ -572,72 +610,84 @@ function makeKakaoMapWalkUrl(waypoints) {
     return `https://map.kakao.com/link/by/walk/${encodeURIComponent(start.name)},${start.lat},${start.lng}/${encodeURIComponent(end.name)},${end.lat},${end.lng}`;
 }
 
-// 코스 정보 표시 함수 (수정)
+// 코스 정보 표시 함수 (서버의 course 스키마 반영)
 function displayCourseInfo(courseData) {
-    // 초기 메시지 숨기기
+    // 초기 메시지 숨기기 및 코스 정보 영역 표시
     document.getElementById('initial-message').classList.add('d-none');
-    
-    // 코스 정보 표시
     document.getElementById('course-info').classList.remove('d-none');
-    
-    // 코스 정보 업데이트
-    document.getElementById('total-distance').textContent = courseData.course.total_distance_km + 'km';
-    document.getElementById('estimated-time').textContent = courseData.course.expected_duration_minutes;
-    document.getElementById('elevation').textContent = courseData.course.elevation_change_meters;
-    document.getElementById('course-difficulty').textContent = courseData.course.difficulty;
-    document.getElementById('course-description').textContent = courseData.course.description;
-    
-    // 경유지 목록 업데이트
+
+    const course = courseData && courseData.course ? courseData.course : {};
+
+    // 숫자/문자 입력 모두 대응하여 포맷팅
+    const dist = typeof course.total_distance_km === 'number' ? `${course.total_distance_km}km` : (course.total_distance_km || '');
+    const minsVal = course.expected_duration_minutes;
+    const mins = typeof minsVal === 'number' || /^\d+(?:\.\d+)?$/.test(String(minsVal || ''))
+        ? `${parseFloat(minsVal)}분`
+        : (minsVal || '');
+    const elevVal = course.elevation_change_meters;
+    const elev = typeof elevVal === 'number' || /^\d+(?:\.\d+)?$/.test(String(elevVal || ''))
+        ? `${Number(elevVal) >= 0 ? '+' : ''}${parseFloat(elevVal)}m`
+        : (elevVal || '');
+
+    document.getElementById('total-distance').textContent = dist;
+    document.getElementById('estimated-time').textContent = mins;
+    document.getElementById('elevation').textContent = elev;
+    document.getElementById('course-difficulty').textContent = course.difficulty || '';
+    document.getElementById('course-description').textContent = course.description || '';
+
+    // 경유지 목록 업데이트 (name 우선 표시)
     const waypointsElement = document.getElementById('waypoints');
     waypointsElement.innerHTML = '';
-    courseData.course.waypoints.forEach(waypoint => {
+    (Array.isArray(course.waypoints) ? course.waypoints : []).forEach(wp => {
         const li = document.createElement('li');
-        li.textContent = waypoint;
+        if (wp && typeof wp === 'object') {
+            const name = wp.name || '';
+            li.textContent = name || JSON.stringify(wp);
+        } else {
+            li.textContent = String(wp);
+        }
         waypointsElement.appendChild(li);
     });
-    
-    // 팁 목록 업데이트
-    /*
+
+    // 팁 목록 업데이트 (running_tips 사용)
     const tipsElement = document.getElementById('tips');
     tipsElement.innerHTML = '';
-    courseData.tips.forEach(tip => {
+    (Array.isArray(course.running_tips) ? course.running_tips : []).forEach(tip => {
         const li = document.createElement('li');
-        li.textContent = tip;
+        li.textContent = String(tip);
         tipsElement.appendChild(li);
     });
-*/
-    console.log("코스 정보 업데이ㅡㅌ", document);
 
+    // 카카오맵 링크 (출발/도착만 활용)
     const kakaoMapBtn = document.getElementById('kakao-map-link');
-if (kakaoMapBtn && courseData.course.waypoints && courseData.course.waypoints.length > 1) {
-        console.log("출발/도착 좌표와 이름 추출");
+    if (kakaoMapBtn && Array.isArray(course.waypoints) && course.waypoints.length > 1) {
+        const start = course.waypoints[0] || {};
+        const end = course.waypoints[course.waypoints.length - 1] || {};
+        const startName = start.name || '출발지';
+        const endName = end.name || '도착지';
+        const sLng = start.location?.longitude;
+        const sLat = start.location?.latitude;
+        const eLng = end.location?.longitude;
+        const eLat = end.location?.latitude;
+        if ([sLng, sLat, eLng, eLat].every(v => typeof v === 'number' || /^-?\d+(?:\.\d+)?$/.test(String(v)))) {
+            const url = `https://map.kakao.com/link/by/walk/${encodeURIComponent(startName)},${sLng},${sLat}/${encodeURIComponent(endName)},${eLng},${eLat}`;
+            kakaoMapBtn.href = url;
+            kakaoMapBtn.style.display = '';
+        } else {
+            kakaoMapBtn.href = '#';
+            kakaoMapBtn.style.display = 'none';
+        }
+    } else if (kakaoMapBtn) {
+        kakaoMapBtn.href = '#';
+        kakaoMapBtn.style.display = 'none';
+    }
 
-    // 출발/도착 좌표와 이름 추출
-    const start = courseData.course.waypoints[0];
-    const end = courseData.course.waypoints[courseData.course.waypoints.length - 1];
-    
-    const startName = start.name || '출발지';
-    const endName = end.name || '도착지';
-    
-    const url = `https://map.kakao.com/link/by/walk/${encodeURIComponent(startName)},${start.location.longitude},${start.location.latitude}/` +
-                `${encodeURIComponent(endName)},${end.location.longitude},${end.location.latitude}`;
-    
-    kakaoMapBtn.href = url;
-    kakaoMapBtn.style.display = '';
-} else if (kakaoMapBtn) {
-            console.log("else");
-
-    kakaoMapBtn.href = '#';
-    kakaoMapBtn.style.display = 'none';
-}
-    // 애니메이션 효과 추가
+    // 애니메이션 효과 및 저장 버튼 강조
     document.getElementById('course-info').classList.add('fade-in');
-
-    // 저장 버튼 강조 애니메이션
     const saveBtn = document.getElementById('save-course');
     if (saveBtn) {
         saveBtn.classList.add('pulse');
-        setTimeout(()=> saveBtn.classList.remove('pulse'), 1500);
+        setTimeout(() => saveBtn.classList.remove('pulse'), 1500);
     }
 }
 
@@ -871,10 +921,13 @@ function refreshInlineHistory(){
     if (!courses.length){ emptyEl.style.display='block'; return; }
     emptyEl.style.display='none';
     courses.slice(-5).reverse().forEach((c,idx)=>{
+        const actualIndex = courses.length - 1 - idx;
         const li = document.createElement('li');
-        li.className = 'list-group-item d-flex justify-content-between align-items-center';
-        li.innerHTML = `<span>${c.location || '위치 미상'} · ${c.totalDistance}</span>
-        <button class="btn btn-sm btn-outline-primary" data-action="load" data-index="${courses.length-1-idx}">보기</button>`;
+        li.innerHTML = `<span class="inline-history-meta">${c.location || '위치 미상'} · ${c.totalDistance} · ${c.estimatedTime}</span>
+        <span class="inline-history-actions">
+          <button class="inline-history-btn" data-action="load" data-index="${actualIndex}">불러오기</button>
+          <button class="inline-history-btn" data-action="delete" data-index="${actualIndex}">삭제</button>
+        </span>`;
         listEl.appendChild(li);
     });
 }
@@ -890,11 +943,11 @@ function initWeather() {
         }, function(error) {
             console.error('위치 정보를 가져올 수 없습니다:', error);
             // 기본 날씨 정보 표시
-            updateWeatherDisplay('☀️', '23°C', '맑음');
+            updateWeatherDisplay('☀️', '-°C', '맑음');
         });
     } else {
         // 기본 날씨 정보 표시
-        updateWeatherDisplay('☀️', '23°C', '맑음');
+        updateWeatherDisplay('☀️', '-°C', '맑음');
     }
 }
 
@@ -914,12 +967,12 @@ async function getWeatherData(lat, lon) {
             updateWeatherDisplay(weatherIcon, `${temp}°C`, weatherDesc);
         } else {
             // API 호출 실패시 기본 정보 표시
-            updateWeatherDisplay('☀️', '23°C', '맑음');
+            updateWeatherDisplay('☀️', '-°C', '맑음');
         }
     } catch (error) {
         console.error('날씨 정보를 가져오는데 실패했습니다:', error);
         // 에러시 기본 정보 표시
-        updateWeatherDisplay('☀️', '23°C', '맑음');
+        updateWeatherDisplay('☀️', '-°C', '맑음');
     }
 }
 
@@ -937,13 +990,15 @@ function getWeatherIcon(weatherId) {
 
 // 날씨 표시 업데이트 함수
 function updateWeatherDisplay(icon, temperature, description) {
-    const weatherIcon = document.querySelector('.weather-icon');
-    const weatherDesc = document.querySelector('.weather-desc');
-    const tempElement = document.querySelector('.temperature');
-    
-    if (weatherIcon) weatherIcon.textContent = icon;
-    if (weatherDesc) weatherDesc.textContent = description;
-    if (tempElement) tempElement.textContent = temperature;
+    const weatherIconEls = document.querySelectorAll('.weather-icon');
+    const weatherDescEls = document.querySelectorAll('.weather-desc');
+    const tempElements = document.querySelectorAll('.temperature');
+    const timeEl = document.getElementById('weather-time');
+
+    weatherIconEls.forEach(el => { el.textContent = icon; });
+    weatherDescEls.forEach(el => { el.textContent = description; });
+    tempElements.forEach(el => { el.textContent = temperature; });
+    if (timeEl) timeEl.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 // 숭실대입구역~가마치통닭 데모 경로 표시 함수 (실제 도로 경로)

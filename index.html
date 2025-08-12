@@ -11,9 +11,9 @@
 <body>
   <!-- 상단 앱바 -->
   <div class="app-bar">
-    <button class="icon-btn" id="open-settings"><i class="fa-solid fa-gear"></i></button>
+    <div class="icon-btn" aria-hidden="true"></div>
     <div class="app-brand">
-      <img src="https://dummyimage.com/24x24/2f6bff/ffffff&text=R" alt="logo" />
+      <img src="Icon_courseon.png" alt="Course-ON 로고" />
       <span>Course-ON</span>
     </div>
     <button class="icon-btn" id="add-btn"><i class="fa-solid fa-plus"></i></button>
@@ -28,47 +28,56 @@
 
     <!-- 컨트롤 영역 (하단 절반) -->
     <div class="controls-half">
-      <!-- 감정 슬라이더 추가 -->
-      <div class="emotion-slider-container">
-        <label class="emotion-label">오늘의 감정</label>
-        <div class="emotion-slider-wrapper">
-          <div class="emotion-emoji left">😢</div>
-          <div class="emotion-slider">
-            <input type="range" class="emotion-range" id="emotion-slider" min="0" max="100" value="50">
-            <div class="emotion-track">
-              <div class="emotion-fill" id="emotion-fill"></div>
+      
+      
+      
+      
+      <!-- WeatherInfo 카드 -->
+      <div class="weather-info-card" id="weather-view">
+        <div class="wic-left">
+          <div class="wic-icon"><span class="weather-icon">☀️</span></div>
+          <div class="wic-main">
+            <div class="wic-temp-row">
+              <span class="wic-temp temperature">23°C</span>
+            </div>
+            <p class="wic-desc weather-desc">맑음</p>
+          </div>
+        </div>
+        <div class="wic-right">
+          <div class="wic-time"><i class="fa-regular fa-clock me-1"></i><span id="weather-time">-</span></div>
+        </div>
+      </div>
+
+      <!-- 러닝 코스 설정 폼 (RoutePanel 스타일) -->
+      <div class="running-settings-container route-panel-card">
+        <div class="route-panel-header">
+          <h6 class="route-panel-title">러닝 설정</h6>
+          <button class="icon-btn route-panel-menu-btn" type="button" aria-label="메뉴"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+        </div>
+        <form id="running-form-inline">
+          <!-- 출발지 -->
+          <div class="mb-3">
+            <label for="location-inline" class="form-label route-panel-label">출발지</label>
+            <div class="departure-row">
+              <div class="departure-indicator" aria-hidden="true"></div>
+              <div class="departure-input-group">
+                <input type="text" class="form-control form-control-sm route-panel-input" id="location-inline" placeholder="출발지 입력">
+              </div>
+              <button class="btn btn-outline-secondary btn-sm route-panel-locate-btn" type="button" id="current-location-inline" aria-label="현재 위치">
+                <i class="fa-solid fa-location-crosshairs"></i>
+              </button>
             </div>
           </div>
-          <div class="emotion-emoji right">😊</div>
-        </div>
-        <div class="emotion-text" id="emotion-text">보통</div>
-      </div>
-      
-      <div class="controls-row">
-        <button class="circle-btn" id="history-inline-btn" aria-label="기록"><i class="fa-regular fa-clock"></i></button>
-        <button class="circle-btn" id="locate-me" aria-label="내 위치"><i class="fa-solid fa-location-crosshairs"></i></button>
-        <button class="circle-btn weather-btn" id="weather-btn" aria-label="날씨">
-          <div class="weather-content">
-            <div class="weather-icon">☀️</div>
-            <div class="weather-desc">맑음</div>
-          </div>
-        </button>
-        <button class="circle-btn temperature-btn" id="temperature-btn" aria-label="기온">
-          <div class="temperature-content">
-            <div class="temperature">23°C</div>
-          </div>
-        </button>
-      </div>
-      
-      <!-- 러닝 코스 설정 폼 추가 -->
-      <div class="running-settings-container">
-        <h6 class="settings-title">러닝 설정</h6>
-        <form id="running-form-inline">
+          <!-- 현재 기분 (RoutePanel 내, 거리 슬라이더 스타일) -->
           <div class="mb-3">
-            <label for="location-inline" class="form-label">현재 위치</label>
-            <div class="input-group">
-              <input type="text" class="form-control form-control-sm" id="location-inline" placeholder="주소 또는 장소명">
-              <button class="btn btn-outline-secondary btn-sm" type="button" id="current-location-inline"><i class="fas fa-map-marker-alt"></i></button>
+            <div class="d-flex justify-content-between align-items-center">
+              <label for="emotion-slider" class="form-label route-panel-label mb-0">현재 기분</label>
+              <span id="emotion-text" class="small text-muted">보통</span>
+            </div>
+            <input type="range" class="form-range" id="emotion-slider" min="0" max="100" step="1" value="50">
+            <div class="d-flex justify-content-between small text-muted">
+              <span>슬픔</span>
+              <span>기쁨</span>
             </div>
           </div>
           <div class="mb-3">
@@ -82,7 +91,7 @@
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label for="difficulty-inline" class="form-label">난이도</label>
+              <label for="difficulty-inline" class="form-label route-panel-label">난이도</label>
               <select class="form-select form-select-sm" id="difficulty-inline">
                 <option value="walking">산책</option>
                 <option value="easy">쉬움</option>
@@ -91,7 +100,7 @@
               </select>
             </div>
             <div class="col-6">
-              <label for="time-inline" class="form-label">시간대</label>
+              <label for="time-inline" class="form-label route-panel-label">시간대</label>
               <select class="form-select form-select-sm" id="time-inline">
                 <option value="morning">아침</option>
                 <option value="afternoon" selected>오후</option>
@@ -101,7 +110,7 @@
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">선호 환경</label>
+            <label class="form-label route-panel-label">선호 환경</label>
             <div class="row g-1">
               <div class="col-6">
                 <div class="form-check form-check-sm">
@@ -129,8 +138,21 @@
               </div>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary btn-sm w-100">코스 생성</button>
+          <button type="submit" class="btn btn-primary btn-sm w-100 route-panel-submit-btn">
+            <i class="fa-solid fa-location-arrow me-1"></i> 러닝 코스 찾기
+          </button>
         </form>
+      </div>
+
+      <!-- 최근 러닝 코스 (RoutePanel 스타일) -->
+      <div class="inline-history-card route-panel-card">
+        <div class="route-panel-header">
+          <h6 class="route-panel-title">최근 러닝 코스</h6>
+        </div>
+        <div class="inline-history-body">
+          <div id="history-inline-empty" class="text-muted small">저장된 코스가 없습니다.</div>
+          <ul id="history-inline-list" class="inline-history-list"></ul>
+        </div>
       </div>
       
       </div>

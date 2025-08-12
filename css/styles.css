@@ -34,9 +34,10 @@ body {
 
 /* 지도 */
 /* 레이아웃: 좌우 절반 (세로 분할) */
-.content { position: fixed; top: 56px; bottom: 0; left: 0; right: 0; display: grid; grid-template-columns: 1fr 1fr; }
+.content { position: fixed; top: 56px; bottom: 0; left: 0; right: 0; display: grid; grid-template-columns: 3fr 1fr; }
 .map-half { position: relative; background: #e9eef7; }
 .controls-half { background: var(--surface); padding: 16px; display: grid; grid-template-rows: auto 1fr; gap: 16px; border-left: 1px solid #eef1f6; overflow: auto; }
+.controls-half { font-family: 'Noto Sans KR', sans-serif; }
 .gps-badge { position: absolute; left: 12px; top: 8px; background: var(--surface); color: var(--text); box-shadow: 0 4px 12px var(--elev); border-radius: 16px; padding: 8px 12px; font-size: 12px; display: flex; align-items:center; gap: 6px; z-index: 6; }
 
 /* 컨트롤: 동그라미 버튼들 */
@@ -101,6 +102,24 @@ body {
   line-height: 1;
 }
 
+/* WeatherInfo 카드 */
+.weather-info-card {
+  margin: 4px 0 8px;
+  padding: 12px;
+  border: 1px solid #a5f3fc;
+  background: linear-gradient(90deg, #ecfeff, #eff6ff);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.wic-left { display:flex; align-items:center; gap: 10px; }
+.wic-icon { width:40px; height:40px; border-radius:20px; background:#06b6d4; display:flex; align-items:center; justify-content:center; color:#fff; }
+.wic-temp { font-size: 20px; font-weight: 700; color:#0e7490; }
+.wic-desc { margin:0; font-size: 12px; color:#0ea5e9; }
+.wic-right { text-align:right; }
+.wic-time { font-size: 12px; color:#0ea5e9; }
+
 /* 인라인 기록 */
 .history-inline { border: 1px solid #eef1f6; border-radius: 12px; padding: 8px; max-height: 100%; overflow: auto; }
 .history-inline .list-group-item { padding: 8px 12px; }
@@ -121,6 +140,11 @@ body {
 .sheet-header .icon-btn { position: absolute; right: 8px; }
 .drag-handle { width: 40px; height: 4px; border-radius: 2px; background: #d8deea; margin: 6px auto 8px; }
 .sheet-body { padding: 12px; }
+
+/* 코스 정보 팝업 폰트 적용 */
+#course-sheet { font-family: 'Noto Sans KR', sans-serif; }
+#course-sheet .sheet-body { padding-left: 30px; padding-right: 30px; }
+#course-sheet h6 { font-weight: 700; }
 
 /* 미니 카드 */
 .mini-card { background: #f6f8fe; border-radius: 12px; padding: 8px; }
@@ -153,14 +177,31 @@ body {
   .controls-half { border-left: 0; border-radius: 16px 16px 0 0; box-shadow: 0 -8px 24px var(--elev); }
 }
 
-/* 감정 슬라이더 스타일 */
-.emotion-slider-container {
-  background: #f8f9ff;
-  border-radius: 16px;
-  padding: 16px;
-  /* margin-bottom: 16px; */ /* 간격 일관성을 위해 grid gap으로 제어 */
-  border: 1px solid #e8edff;
+/* 코스 정보 시트를 데스크톱에서 오른쪽 사이드바 위로 오버레이 */
+@media (min-width: 769px) {
+  #course-sheet.bottom-sheet {
+    /* 맵:사이드바 = 3:1, 맵:팝업 = 2:1 => 팝업 너비 = 37.5% (3/4의 절반) → 좌측 시작 = 62.5% */
+    left: calc(100% * 5 / 8);
+    right: 0;
+    top: 56px; /* 앱바 높이 */
+    bottom: 0;
+    max-height: none;
+    border-radius: 0; /* 사이드바를 완전히 가리도록 */
+    box-shadow: -12px 0 32px var(--elev); /* 좌측 그림자 */
+    transition: transform .3s ease, opacity .2s ease;
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  #course-sheet.bottom-sheet.open {
+    transform: translateX(0);
+    opacity: 1;
+    bottom: 0; /* 보장 */
+  }
 }
+
+/* 감정 슬라이더 스타일 */
+/* 상단 감정 컨테이너는 RoutePanel 편입 시 사용하지 않음 (유지하되 미사용) */
+.emotion-slider-container { display:none; }
 
 .emotion-label {
   display: block;
@@ -208,6 +249,7 @@ body {
   background: transparent;
   outline: none;
   -webkit-appearance: none;
+  appearance: none;
   z-index: 2;
 }
 
@@ -350,3 +392,26 @@ body {
 .form-range::-ms-track {
   background-color: #e9ecef;
 }
+
+/* RoutePanel 스타일 (카드/헤더/입력/버튼) */
+.route-panel-card { border: 1px solid #e8edff; border-radius: 12px; background: #ffffff; box-shadow: 0 6px 16px var(--elev); }
+.route-panel-header { display:flex; align-items:center; justify-content: space-between; padding: 8px 2px 12px; }
+.route-panel-title { margin:0; font-weight:700; color:#0e7490; }
+.route-panel-label { color:#0e7490; font-weight:600; }
+.departure-row { display:flex; align-items:center; gap:8px; }
+.departure-input-group { flex:1; display:flex; align-items:center; padding: 6px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius: 8px; }
+.route-panel-input { border:0 !important; background:transparent !important; box-shadow:none !important; }
+.route-panel-locate-btn { border-color:#94a3b8 !important; color:#0e7490 !important; }
+.departure-indicator { width:12px; height:12px; border-radius:50%; background:#22c55e; }
+.route-panel-submit-btn { font-weight:700; }
+.route-panel-submit-btn:disabled { opacity:.7; cursor:not-allowed; }
+
+/* 최근 러닝 코스 리스트 */
+.inline-history-card { margin-top: 12px; }
+.inline-history-body { padding: 8px 4px 8px 4px; }
+.inline-history-list { list-style: none; margin: 0; padding: 0; }
+.inline-history-list li { display:flex; align-items:center; justify-content:space-between; padding: 8px 10px; border-bottom: 1px solid #eef1f6; }
+.inline-history-list li:last-child { border-bottom: 0; }
+.inline-history-meta { font-size: 13px; color: var(--text); }
+.inline-history-actions { display:flex; gap: 6px; }
+.inline-history-btn { border: 1px solid #a5b4fc; color:#1d4ed8; background:#eff6ff; border-radius: 6px; padding: 4px 8px; font-size: 12px; }
