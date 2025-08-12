@@ -54,8 +54,12 @@ module.exports = async function handler(req, res) {
 
         const params = { origin, destination, priority: 'RECOMMEND' };
         const kakaoResponse = await axios.get('https://apis-navi.kakaomobility.com/v1/directions', {
-          params,
-          headers: { Authorization: `KakaoAK ${kakaoApiKey}` },
+         params,
+                headers: { 
+                Authorization: `KakaoAK ${kakaoApiKey}`,
+                os: 'web',
+                origin: 'https://course-onspectrum.vercel.app/'
+                }
         });
         const route = kakaoResponse.data?.routes?.[0];
         if (route && route.sections) {
